@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": false,
+    "baseUrl": "./",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "module": "none",
+    "moduleResolution": "node",
+    "lib": [
+      "dom",
+      "es6",
+      "es7"
+    ],
+    "strictNullChecks": true,
+    "target": "es5"
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*/__temp"
+  ]
+}
