@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "allowJs": true,
     "allowSyntheticDefaultImports": false,
     "baseUrl": "./",
     "experimentalDecorators": true,

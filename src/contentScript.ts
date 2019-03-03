@@ -1,13 +1,20 @@
-const ENDPOINT = 'https://httpbin.org/post';
-const TAG = '[interrobang-chrome]';
+(() => {
 
-const log = (...msg) => console.log(TAG, ...msg);
+const ENDPOINT = 'https://httpbin.org/post';
+const MODULE_NAME = 'interrobang-chrome';
+
+const log = (format, ...msg) => console.log(`[${MODULE_NAME}] ${format}`, ...msg);
 log(`Reading contentScript...`);
 
 const state: State = {
   data: undefined,
   nodes: [],
   selector: null,
+};
+
+const TagClassName = {
+  label: `${MODULE_NAME}-label`,
+  wrapper: `${MODULE_NAME}-wrapper`,
 };
 
 async function initialize() {
@@ -21,10 +28,12 @@ async function initialize() {
   log('initialize() with message', message);
 
   return new Promise((resolve, reject) => {
-    chrome.runtime.sendMessage(message, (response) => {
+    chrome.runtime.sendMessage(message, (response: MetaResponse) => {
       log('response: %o', response);
-  
-      state.selector = response.meta.selector;
+
+      state.selector = response.selector;
+
+      utils.createStyleNode(response.style);
       resolve(response);
     });
   });
@@ -47,12 +56,10 @@ async function fetchSummary() {
   const tick = 1;
 
   const makeRequestBatch = async (start, end, callback: FetchCallback) => {
-    log('request batch, start: %s, end: %s', start, end);
-
     for (let idx = start; idx < end; idx++) {
       console.log('request idx: %s', idx);
       const node = nodes[idx];
-      const data = await postData(ENDPOINT, {
+      const data = await utils.postData(ENDPOINT, {
         idx,
         url: node.getAttribute('href'),
       });
@@ -70,7 +77,7 @@ async function fetchSummary() {
 
   const fetchCallback = ({ data, idx }) => {
     const parentNode = nodes[idx].parentNode;
-    const node = createNode('p', 33);
+    const node = utils.createSummaryNode(33);
     parentNode.appendChild(node);
   };
 
@@ -86,23 +93,37 @@ async function fetchSummary() {
   await fetchSummary();
 })();
 
-function createNode(type: string, data) {
-  const node = document.createElement(type);
-  const text = document.createTextNode(data);
-  node.appendChild(text);
-  return node;
-}
+const utils = {
+  createStyleNode(styleDef: string) {
+    const style = document.createElement('style');
+    style.type = 'text/css';
+    style.textContent = styleDef;
+    document.getElementsByTagName('head')[0].appendChild(style);
+  },
+  createSummaryNode(data) {
+    const root = document.createElement('div');
+    root.textContent = data;
+    root.setAttribute('class', TagClassName.wrapper);
 
-function postData(endpoint, data) {
-  return fetch(endpoint, {
-    body: JSON.stringify(data),
-    method: 'POST',
-  })
-    .then((response) => {
-      log('postData() success: %o', response);
-      return response.json();
-    });
-}
+    const label = document.createElement('span');
+    label.innerHTML = `powered by <b>interrobang</b>`;
+    label.setAttribute('class', TagClassName.label);
+
+    root.appendChild(label);
+    return root;
+  },
+  postData(endpoint, data) {
+    return fetch(endpoint, {
+      body: JSON.stringify(data),
+      method: 'POST',
+    })
+      .then((response) => {
+        log('postData() success: %o', response);
+        return response.json();
+      });
+  },
+};
+})();
 
 interface State {
   data;
@@ -115,4 +136,9 @@ interface FetchCallback {
     data;
     idx;
   }): any;
+}
+
+interface MetaResponse {
+  selector: string;
+  style: string; 
 }
