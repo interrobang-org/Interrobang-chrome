@@ -74,7 +74,7 @@ async function fetchSummary() {
 
       const data = utils.makeNetworkRequest(Endpoint.questions, {
         summarize: 1,
-        url: node.getAttribute('href'),
+        url: utils.addHostIfNotPresent(node.getAttribute('href')),
       }).then((data: SummaryData) => {
         callback({
           data,
@@ -142,7 +142,7 @@ const utils = {
   },
   createSummaryNode(data: SummaryData) {
     const text = document.createElement('p');
-    text.textContent = data.error
+    text.textContent = data.error || data === undefined
       ? '(Text either not robot-friendly or processing unavailable)'
       : data.questions.join(' ');
     text.setAttribute('class', TagClassName.text);
@@ -166,6 +166,14 @@ const utils = {
         resolve(response);
       });
     });
+  },
+  addHostIfNotPresent(url: string) {
+    if (!url.startsWith('http')) {
+      const location = window.location;
+      return `${location.protocol}//${location.host}/${url}`;
+    } else {
+      return url;
+    }
   },
 };
 })();

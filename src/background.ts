@@ -12,7 +12,7 @@ const defaultStyle =`
   border-radius: 3px;
   display: flex;
   font-size: 0.95em;
-  max-width: 800px;
+  max-width: 785px;
   padding: 10px 5px 3px;
   position: relative;
 }
