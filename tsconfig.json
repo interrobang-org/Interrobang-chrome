@@ -4,13 +4,15 @@
     "baseUrl": "./",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "module": "none",
+    "jsx": "react",
+    "module": "commonjs",
     "moduleResolution": "node",
     "lib": [
       "dom",
       "es6",
       "es7"
     ],
+    "skipLibCheck": true,
     "strictNullChecks": true,
     "target": "es5"
   },

@@ -11,7 +11,7 @@ const defaultStyle =`
   background-color: #6b6b6b0a;
   border-radius: 3px;
   display: flex;
-  font-size: 0.85em;
+  font-size: 0.95em;
   max-width: 800px;
   padding: 10px 5px 3px;
   position: relative;

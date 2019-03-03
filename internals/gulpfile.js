@@ -12,9 +12,11 @@ const path = require('path');
 const sourcemaps = require('gulp-sourcemaps');
 const ts = require('gulp-typescript');
 const util = require('util');
+const webpack = require("webpack");
 
 const babelRc = require('./.babelrc');
 const tsConfig = require('../tsconfig.json');
+const webpackConfig = require('./webpack.config');
 
 const ROOT_PATH = (function(currentWorkingDirectory) {
   const rootPath = fs.realpathSync(currentWorkingDirectory);
@@ -43,6 +45,7 @@ const Task = {
   CLEAN: 'clean',
   COPY: 'copy',
   TSC: 'tsc',
+  WEBPACK: 'webpack',
 };
 
 gulp.task(Task.CLEAN, () => {
@@ -62,9 +65,34 @@ gulp.task(Task.TSC, () => {
   buildLog(Task.TSC, 'tsconfig: %o', tsConfig.compilerOptions);
   const tsProject = ts.createProject(tsConfig.compilerOptions);
 
-  return gulp.src([`${paths.src}/**/*.{js,jsx,ts,tsx}`])
+  return gulp.src([
+    `${paths.src}/**/*.{js,jsx,ts,tsx}`,
+  ])
     .pipe(tsProject())
     .pipe(gulp.dest(paths.lib));
 });
 
-gulp.task(Task.BUILD, gulp.series(Task.CLEAN, Task.COPY, Task.TSC));
+gulp.task(Task.WEBPACK, (done) => {
+  const compiler = webpack({
+    ...webpackConfig,
+    entry: `${paths.src}/options/options.tsx`,
+    output: {
+      filename: 'options.js',
+      path: `${paths.lib}`,
+    },
+  });
+
+  compiler.watch({
+    aggregateTimeout: 300,
+    poll: undefined,
+  }, (err, stats) => {
+    console.log(stats.toString('normal'));
+    done();
+  });
+});
+
+gulp.task(Task.BUILD, gulp.series(
+  Task.CLEAN, 
+  Task.COPY, 
+  gulp.parallel(Task.TSC, Task.WEBPACK),
+));
