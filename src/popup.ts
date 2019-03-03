@@ -2,17 +2,12 @@ const button = document.getElementById('button')!;
 
 button.onclick = function(element: any) {
   chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-    executeScripts(tabs[0].id, [ 
-      { file: "axios.js" }, 
-      { file: "contentScript.js" },
-  ])
-    chrome.tabs.executeScript(
-      tabs[0].id,
-      {
-        file: 'contentScript.js',
-      },
+    executeScripts(tabs[0].id, 
+      [ 
+        { file: "axios.js" }, 
+        { file: "contentScript.js" },
+      ]
     );
-    
   });
 };
 
