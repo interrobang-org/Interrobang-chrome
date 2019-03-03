@@ -1,4 +1,5 @@
 declare const chrome;
+declare const axios;
 
 const meta = {
   'news.ycombinator.com': {
@@ -7,8 +8,8 @@ const meta = {
 };
 
 chrome.runtime.onInstalled.addListener(function() {
-  chrome.storage.sync.set({color: '#3aa757'}, function() {
-    console.log('The color is green.11');
+  chrome.storage.sync.set({ foo: 'bar'}, function() {
+    console.log('storage check');
   });
 
   chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
@@ -25,8 +26,8 @@ chrome.runtime.onInstalled.addListener(function() {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const logMsg = sender.tab 
-    ? `from a content script: ${sender.tab.url}`
-    : `from the extension`;
+    ? `Message from a content script: ${sender.tab.url}`
+    : `Message from the extension`;
   console.log(logMsg, message);
   
   if (message.type === 'initialize') {

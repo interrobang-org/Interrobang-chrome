@@ -1,14 +1,16 @@
-const tag = '[interrobang-chrome]';
-const log = (...msg) => console.log(`${tag} ${msg}`);
+const ENDPOINT = 'https://httpbin.org/post';
+const TAG = '[interrobang-chrome]';
+const log = (...msg) => console.log(TAG, ...msg);
 
-log(`start`, '1');
+log(`Reading contentScript...`);
 
 const state = {
+  data: undefined,
   nodes: [],
   selector: null,
 };
 
-(function initialize(callback = () => {}) {
+async function initialize() {
   const message = {
     payload: {
       host: window.location.host,
@@ -16,14 +18,34 @@ const state = {
     type: 'initialize',
   };
 
-  chrome.runtime.sendMessage(message, (response) => {
-    console.log('response: %o', response);
+  log('initialize() with message', message);
 
-    state.selector = response.selector;
-    callback();
+  return new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage(message, (response) => {
+      log('response: %o', response);
+  
+      state.selector = response.meta.selector;
+      resolve(response);
+    });
   });
-})();
-
-function getNodesToFetchSummary() {
-   console.log(123, state.selector);
 }
+
+async function getNodesToFetchSummary() {
+  const { selector } = state;
+  log('getNodesToFetchSummary() selector: %s', selector);
+
+  const nodes = document.querySelectorAll(selector!);
+  const { data } = await axios.post(ENDPOINT, {
+    power: 1,
+  });
+
+  log('getNodesToFetchSummary() fetchResult: %o', data);
+
+  state.data = data;
+  return data;
+}
+
+(async function runTheApplication() {
+  await initialize();
+  await getNodesToFetchSummary();
+})();
