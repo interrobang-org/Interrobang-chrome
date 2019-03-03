@@ -2,7 +2,6 @@ const babelRc = require('./.babelrc');
 
 module.exports = {
   context: __dirname,
-  devtool: 'cheap-module-source-map',
   externals: {},
   mode: 'production',
   module: {
