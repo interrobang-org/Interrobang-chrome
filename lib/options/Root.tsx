@@ -41,7 +41,7 @@ const Title = styled.p`
 `;
 
 const Subtitle = styled.p`
-  font-size: 20px;
+  font-size: 16px;
 `;
 
 const Textarea = styled.textarea`
@@ -147,11 +147,12 @@ const Credit = styled.div`
   margin-top: 20px;
 
   span {
-    margin-right: 12px;
+    margin-right: 22px;
     
   }
 
   a {
+    color: black;
     text-decoration: none;
   }
 `;
@@ -203,7 +204,7 @@ const Root = () => {
           Interrobang - Playground
         </Title>
         <Subtitle>
-          subtitle
+          New way of consuming information: Get questions in advance to better decide what to learn
         </Subtitle>
         <Textarea
           onChange={handleChangeTextarea}
@@ -226,7 +227,7 @@ const Root = () => {
         </ResultGroup>
         <Credit>
           <div>
-            <span>Interrobang</span>
+            <span>2019 Interrobang presents</span>
             <span><a href="https://github.com/interrobang-org">Github</a></span>
           </div>
         </Credit>
