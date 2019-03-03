@@ -7,6 +7,7 @@ import GlobalStyle from './GlobalStyle';
 const ENDPOINT_HOST = 'http://127.0.0.1:5000';
 
 const Endpoint = {
+  playground: `${ENDPOINT_HOST}/api/playground`,
   questions: `${ENDPOINT_HOST}/api/questions`,
   summary: `${ENDPOINT_HOST}/api/summary`,
 };
@@ -57,6 +58,7 @@ const Textarea = styled.textarea`
 `;
 
 const ButtonGroup = styled.div`
+  align-items: center;
   display: flex;
 `;
 
@@ -72,7 +74,10 @@ const Button = styled.p`
 `;
 
 const Status = styled.p`
-
+  color: gray;
+  font-size: 12px;
+  font-style: italic;
+  margin-left: 22px;
 `;
 
 const ResultGroup = styled.div`
@@ -84,6 +89,23 @@ const ResultGroup = styled.div`
 
   > div {
     width: 48%;
+  }
+`;
+
+const ResultBox = styled.div`
+  background-color: #f7f7f7;
+  border-radius: 3px;
+  font-size: 13px;
+  height: 170px;
+  margin-top: 9px;
+  overflow-y: scroll;
+  padding: 5px 6px;
+
+  > div {
+    margin-bottom: 7px;
+    > span:first-child {
+      font-weight: bold;
+    }
   }
 `;
 
@@ -99,14 +121,26 @@ const Result = ({
   );
 };
 
-const ResultBox = styled.div`
-  background-color: #f7f7f7;
-  border-radius: 3px;
-  font-size: 13px;
-  height: 140px;
-  margin-top: 9px;
-  padding: 5px 6px;
-`;
+const QuestionResult = ({
+  question,
+  title,
+}) => {
+  return (
+    <div>
+      <div>{title}</div>
+      <ResultBox>
+        <div>
+          <span>Questions: </span>
+          <span>{question.questions}</span>
+        </div>
+        <div>
+          <span>Answers: </span>
+          <span>{question.answers}</span>
+        </div>
+      </ResultBox>
+    </div>
+  );
+};
 
 const Credit = styled.div`
   color: gray;
@@ -126,7 +160,10 @@ const Root = () => {
   const [ fetchStatus, setFetchStatus ] = useState('');
   const [ text, setText ] = useState(textareaPlaceholder);
   const [ summary, setSummary ] = useState('[summary]');
-  const [ question, setQuestion ] = useState('[question]');
+  const [ question, setQuestion ] = useState({
+    questions: '[question]',
+    answers: '[answers]',
+  });
 
   const handleClickConvert = useMemo(
     () => (e) => {
@@ -135,19 +172,17 @@ const Root = () => {
         text,
       });
 
-      const p2 = postData(Endpoint.questions, {
+      const p2 = postData(Endpoint.playground, {
         text,
-        summarize: 1,
-        url: 'none',
+        noqs: 3,
       });
 
       Promise.all([ p1, p2 ])
         .then(([ summaryRes, questionRes ]) => {
           setFetchStatus('Data is successfully fetched');
 
-          console.log(123, summaryRes, questionRes);
           setSummary(summaryRes['summary']);
-          setQuestion(questionRes['questions']);
+          setQuestion(questionRes);
         });
     },
     [summary],
@@ -184,8 +219,8 @@ const Root = () => {
             label={summary}
             title={'Summary'}
           />
-          <Result 
-            label={question}
+          <QuestionResult 
+            question={question}
             title={'Questions'}
           />
         </ResultGroup>

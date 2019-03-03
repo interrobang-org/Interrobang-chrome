@@ -92,6 +92,23 @@ const ResultGroup = styled.div`
   }
 `;
 
+const ResultBox = styled.div`
+  background-color: #f7f7f7;
+  border-radius: 3px;
+  font-size: 13px;
+  height: 170px;
+  margin-top: 9px;
+  overflow-y: scroll;
+  padding: 5px 6px;
+
+  > div {
+    margin-bottom: 7px;
+    > span:first-child {
+      font-weight: bold;
+    }
+  }
+`;
+
 const Result = ({
   title,
   label,
@@ -104,15 +121,26 @@ const Result = ({
   );
 };
 
-const ResultBox = styled.div`
-  background-color: #f7f7f7;
-  border-radius: 3px;
-  font-size: 13px;
-  height: 170px;
-  margin-top: 9px;
-  overflow-y: scroll;
-  padding: 5px 6px;
-`;
+const QuestionResult = ({
+  question,
+  title,
+}) => {
+  return (
+    <div>
+      <div>{title}</div>
+      <ResultBox>
+        <div>
+          <span>Questions: </span>
+          <span>{question.questions}</span>
+        </div>
+        <div>
+          <span>Answers: </span>
+          <span>{question.answers}</span>
+        </div>
+      </ResultBox>
+    </div>
+  );
+};
 
 const Credit = styled.div`
   color: gray;
@@ -132,7 +160,10 @@ const Root = () => {
   const [ fetchStatus, setFetchStatus ] = useState('');
   const [ text, setText ] = useState(textareaPlaceholder);
   const [ summary, setSummary ] = useState('[summary]');
-  const [ question, setQuestion ] = useState('[question]');
+  const [ question, setQuestion ] = useState({
+    questions: '[question]',
+    answers: '[answers]',
+  });
 
   const handleClickConvert = useMemo(
     () => (e) => {
@@ -150,9 +181,8 @@ const Root = () => {
         .then(([ summaryRes, questionRes ]) => {
           setFetchStatus('Data is successfully fetched');
 
-          const { questions, answers } = questionRes;
           setSummary(summaryRes['summary']);
-          setQuestion(`questions: ${questions} \\n answers: ${answers}`);
+          setQuestion(questionRes);
         });
     },
     [summary],
@@ -189,8 +219,8 @@ const Root = () => {
             label={summary}
             title={'Summary'}
           />
-          <Result 
-            label={question}
+          <QuestionResult 
+            question={question}
             title={'Questions'}
           />
         </ResultGroup>
