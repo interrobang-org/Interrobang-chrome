@@ -1,6 +1,7 @@
 (() => {
 
-const ENDPOINT = 'https://httpbin.org/post';
+const ENDPOINT = 'https://frozen-sands-16144.herokuapp.com/api/getQ';
+// const ENDPOINT = 'http://127.0.0.1:5000/api/getQ';
 const MODULE_NAME = 'interrobang-chrome';
 
 const log = (format, ...msg) => console.log(`[${MODULE_NAME}] ${format}`, ...msg);
@@ -10,10 +11,14 @@ const state: State = {
   data: undefined,
   nodes: [],
   selector: null,
+  wrapperNodes: [],
 };
 
 const TagClassName = {
-  label: `${MODULE_NAME}-label`,
+  logo: `${MODULE_NAME}-logo`,
+  spinner: `${MODULE_NAME}-spinner-wrapper`,
+  spinnerCore: `${MODULE_NAME}-spinner`,
+  text: `${MODULE_NAME}-text`,
   wrapper: `${MODULE_NAME}-wrapper`,
 };
 
@@ -55,18 +60,21 @@ async function fetchSummary() {
   let nextIndex = 0;
   const tick = 1;
 
-  const makeRequestBatch = async (start, end, callback: FetchCallback) => {
+  const makeRequestBatch = async (start, end, callback: FetchSuccesCallback) => {
     for (let idx = start; idx < end; idx++) {
-      console.log('request idx: %s', idx);
-      const node = nodes[idx];
-      const data = await utils.postData(ENDPOINT, {
-        idx,
-        url: node.getAttribute('href'),
-      });
+      log('make network request idx: %s', idx);
 
-      callback({
-        data,
-        idx,
+      const node = nodes[idx];
+      fetchCallback(idx);
+
+      const data = utils.makeNetworkRequest(ENDPOINT, {
+        summarize: 1,
+        url: node.getAttribute('href'),
+      }).then((data: SummaryData) => {
+        callback({
+          data,
+          idx,
+        });
       });
     }
 
@@ -75,14 +83,21 @@ async function fetchSummary() {
     });
   };
 
-  const fetchCallback = ({ data, idx }) => {
+  const fetchCallback = (idx) => {
     const parentNode = nodes[idx].parentNode;
-    const node = utils.createSummaryNode(33);
+    const node = utils.createSpinnerNode();
+    parentNode.appendChild(node);
+  }
+
+  const fetchSuccessCallback: FetchSuccesCallback = ({ data, idx }) => {
+    const parentNode = state.wrapperNodes[idx];
+    const node = utils.createSummaryNode(data);
+    parentNode.removeChild(parentNode.firstChild);
     parentNode.appendChild(node);
   };
 
   while (nextIndex < nodes.length) {
-    await makeRequestBatch(nextIndex, nextIndex + tick, fetchCallback);
+    await makeRequestBatch(nextIndex, nextIndex + tick, fetchSuccessCallback);
     nextIndex = nextIndex + tick;
   }
 }
@@ -94,33 +109,58 @@ async function fetchSummary() {
 })();
 
 const utils = {
+  createSpinnerNode() {
+    const wrapper = document.createElement('div');
+    wrapper.setAttribute('class', TagClassName.wrapper);
+    state.wrapperNodes.push(wrapper);
+    
+    const spinner = document.createElement('div');
+    spinner.setAttribute('class', TagClassName.spinner);
+    
+    const spinnerCore = document.createElement('div');
+    spinnerCore.setAttribute('class', TagClassName.spinnerCore);
+    spinner.appendChild(spinnerCore);
+
+    const logo = document.createElement('span');
+    logo.innerHTML = `powered by <b>interrobang</b>`;
+    logo.setAttribute('class', TagClassName.logo);
+
+    wrapper.appendChild(spinner);
+    wrapper.appendChild(logo);
+    return wrapper;
+  },
   createStyleNode(styleDef: string) {
     const style = document.createElement('style');
     style.type = 'text/css';
     style.textContent = styleDef;
     document.getElementsByTagName('head')[0].appendChild(style);
   },
-  createSummaryNode(data) {
-    const root = document.createElement('div');
-    root.textContent = data;
-    root.setAttribute('class', TagClassName.wrapper);
+  createSummaryNode(data: SummaryData) {
+    const text = document.createElement('p');
+    text.textContent = data.error
+      ? '(Text either not robot-friendly or processing unavailable)'
+      : data.questions.join(' ');
+    text.setAttribute('class', TagClassName.text);
 
-    const label = document.createElement('span');
-    label.innerHTML = `powered by <b>interrobang</b>`;
-    label.setAttribute('class', TagClassName.label);
-
-    root.appendChild(label);
-    return root;
+    return text;
   },
-  postData(endpoint, data) {
-    return fetch(endpoint, {
-      body: JSON.stringify(data),
-      method: 'POST',
-    })
-      .then((response) => {
-        log('postData() success: %o', response);
-        return response.json();
+  makeNetworkRequest(endpoint, data) {
+    const message = {
+      payload: {
+        data,
+        endpoint,
+      },
+      type: 'network',
+    };
+
+    log('network request: %o', message);
+
+    return new Promise<SummaryData>((resolve, reject) => {
+      chrome.runtime.sendMessage(message, (response: SummaryData) => {
+        log('response: %o', response);
+        resolve(response);
       });
+    });
   },
 };
 })();
@@ -129,11 +169,12 @@ interface State {
   data;
   nodes: NodeListOf<any> | any[];
   selector: string | null;
+  wrapperNodes: any[];
 }
 
-interface FetchCallback {
+interface FetchSuccesCallback {
   (arg: {
-    data;
+    data: SummaryData;
     idx;
   }): any;
 }
@@ -141,4 +182,9 @@ interface FetchCallback {
 interface MetaResponse {
   selector: string;
   style: string; 
+}
+
+interface SummaryData {
+  error: boolean;
+  questions: string[];
 }

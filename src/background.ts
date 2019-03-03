@@ -7,16 +7,53 @@ const MODULE_NAME = 'interrobang-chrome';
 
 const defaultStyle =`
 .${MODULE_NAME}-wrapper {
+  align-items: center;
   background-color: #6b6b6b0a;
   border-radius: 3px;
-  padding: 8px 5px 3px;
+  display: flex;
+  font-size: 0.85em;
+  max-width: 800px;
+  padding: 10px 5px 3px;
   position: relative;
 }
-.${MODULE_NAME}-label {
+.${MODULE_NAME}-logo {
   font-size: 9px;
   position: absolute;
   right: 3px;
   top: 0;
+}
+.${MODULE_NAME}-text {
+  margin: 0;
+}
+.${MODULE_NAME}-spinner-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+.${MODULE_NAME}-spinner {
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+}
+.${MODULE_NAME}-spinner:after {
+  content: " ";
+  display: block;
+  width: 13px;
+  height: 13px;
+  margin: 1px;
+  border-radius: 50%;
+  border: 2px solid #888;
+  border-color: #888 transparent #888 transparent;
+  animation: lds-dual-ring 1.2s linear infinite;
+}
+@keyframes lds-dual-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 `;
 
@@ -34,12 +71,12 @@ chrome.runtime.onInstalled.addListener(function() {
 
   chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
     chrome.declarativeContent.onPageChanged.addRules([{
+      actions: [ new chrome.declarativeContent.ShowPageAction() ],
       conditions: [
         new chrome.declarativeContent.PageStateMatcher({
           pageUrl: { hostEquals: 'news.ycombinator.com' },
         }),
       ],
-      actions: [new chrome.declarativeContent.ShowPageAction()]
     }]);
   });
 });
@@ -53,6 +90,33 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'initialize') {
     sendResponse(meta[message.payload.host]);
   }
-});  
+
+  if (message.type === 'network') {
+    const { data, endpoint } = message.payload;
+    utils.postData(endpoint, data)
+      .then((res) => {
+        sendResponse(res);
+      });
+  }
+
+  return true;
+});
+
+const utils = {
+  postData(endpoint, data) {
+    return fetch(endpoint, {
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      method: 'POST',
+      mode: 'cors',
+    })
+      .then((response) => {
+        console.log('postData() success: %o', response);
+        return response.json();
+      });
+  },
+};
 
 })();
