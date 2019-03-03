@@ -1,7 +1,7 @@
 (() => {
 
-const ENDPOINT = 'https://frozen-sands-16144.herokuapp.com/api/getQ';
-// const ENDPOINT = 'http://127.0.0.1:5000/api/getQ';
+// const ENDPOINT_HOST = 'https://frozen-sands-16144.herokuapp.com';
+const ENDPOINT_HOST = 'http://127.0.0.1:5000';
 const MODULE_NAME = 'interrobang-chrome';
 
 const log = (format, ...msg) => console.log(`[${MODULE_NAME}] ${format}`, ...msg);
@@ -12,6 +12,11 @@ const state: State = {
   nodes: [],
   selector: null,
   wrapperNodes: [],
+};
+
+const Endpoint = {
+  questions: `${ENDPOINT_HOST}/api/questions`,
+  summary: `${ENDPOINT_HOST}/api/summary`,
 };
 
 const TagClassName = {
@@ -67,7 +72,7 @@ async function fetchSummary() {
       const node = nodes[idx];
       fetchCallback(idx);
 
-      const data = utils.makeNetworkRequest(ENDPOINT, {
+      const data = utils.makeNetworkRequest(Endpoint.questions, {
         summarize: 1,
         url: node.getAttribute('href'),
       }).then((data: SummaryData) => {
