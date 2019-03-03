@@ -56,6 +56,10 @@ const Textarea = styled.textarea`
   width: 100%;
 `;
 
+const ButtonGroup = styled.div`
+  display: flex;
+`;
+
 const Button = styled.p`
   cursor: pointer;
   font-size: 16px;
@@ -65,6 +69,10 @@ const Button = styled.p`
   &:hover {
     color: #2828bd;
   }
+`;
+
+const Status = styled.p`
+
 `;
 
 const ResultGroup = styled.div`
@@ -115,20 +123,38 @@ const Credit = styled.div`
 `;
 
 const Root = () => {
+  const [ fetchStatus, setFetchStatus ] = useState('');
   const [ text, setText ] = useState(textareaPlaceholder);
+  const [ summary, setSummary ] = useState('[summary]');
+  const [ question, setQuestion ] = useState('[question]');
 
   const handleClickConvert = useMemo(
     () => (e) => {
-      postData(Endpoint.summary, {
+      setFetchStatus('Data is being fetched...');
+      const p1 = postData(Endpoint.summary, {
         text,
       });
+
+      const p2 = postData(Endpoint.questions, {
+        text,
+        summarize: 1,
+        url: 'none',
+      });
+
+      Promise.all([ p1, p2 ])
+        .then(([ summaryRes, questionRes ]) => {
+          setFetchStatus('Data is successfully fetched');
+
+          console.log(123, summaryRes, questionRes);
+          setSummary(summaryRes['summary']);
+          setQuestion(questionRes['questions']);
+        });
     },
-    [text],
+    [summary],
   );
 
   const handleChangeTextarea = useMemo(
     () => (e) => {
-      console.log(123, 444);
       setText(e.target.value);
     },
     [text],
@@ -149,14 +175,17 @@ const Root = () => {
         >
           {text}
         </Textarea>
-        <Button onClick={handleClickConvert}>convert</Button>
+        <ButtonGroup>
+          <Button onClick={handleClickConvert}>convert</Button>
+          <Status>{fetchStatus}</Status>
+        </ButtonGroup>
         <ResultGroup>
           <Result
-            label="blabla"
+            label={summary}
             title={'Summary'}
           />
           <Result 
-            label="fwle"
+            label={question}
             title={'Questions'}
           />
         </ResultGroup>

@@ -7,6 +7,7 @@ import GlobalStyle from './GlobalStyle';
 const ENDPOINT_HOST = 'http://127.0.0.1:5000';
 
 const Endpoint = {
+  playground: `${ENDPOINT_HOST}/api/playground`,
   questions: `${ENDPOINT_HOST}/api/questions`,
   summary: `${ENDPOINT_HOST}/api/summary`,
 };
@@ -57,6 +58,7 @@ const Textarea = styled.textarea`
 `;
 
 const ButtonGroup = styled.div`
+  align-items: center;
   display: flex;
 `;
 
@@ -72,7 +74,10 @@ const Button = styled.p`
 `;
 
 const Status = styled.p`
-
+  color: gray;
+  font-size: 12px;
+  font-style: italic;
+  margin-left: 22px;
 `;
 
 const ResultGroup = styled.div`
@@ -103,8 +108,9 @@ const ResultBox = styled.div`
   background-color: #f7f7f7;
   border-radius: 3px;
   font-size: 13px;
-  height: 140px;
+  height: 170px;
   margin-top: 9px;
+  overflow-y: scroll;
   padding: 5px 6px;
 `;
 
@@ -126,16 +132,28 @@ const Root = () => {
   const [ fetchStatus, setFetchStatus ] = useState('');
   const [ text, setText ] = useState(textareaPlaceholder);
   const [ summary, setSummary ] = useState('[summary]');
+  const [ question, setQuestion ] = useState('[question]');
 
   const handleClickConvert = useMemo(
     () => (e) => {
       setFetchStatus('Data is being fetched...');
-      postData(Endpoint.summary, {
+      const p1 = postData(Endpoint.summary, {
         text,
-      }).then((res) => {
-        setFetchStatus('Data is successfully fetched');
-        setSummary(res.summary);
       });
+
+      const p2 = postData(Endpoint.playground, {
+        text,
+        noqs: 3,
+      });
+
+      Promise.all([ p1, p2 ])
+        .then(([ summaryRes, questionRes ]) => {
+          setFetchStatus('Data is successfully fetched');
+
+          const { questions, answers } = questionRes;
+          setSummary(summaryRes['summary']);
+          setQuestion(`questions: ${questions} \\n answers: ${answers}`);
+        });
     },
     [summary],
   );
@@ -172,7 +190,7 @@ const Root = () => {
             title={'Summary'}
           />
           <Result 
-            label="fwle"
+            label={question}
             title={'Questions'}
           />
         </ResultGroup>

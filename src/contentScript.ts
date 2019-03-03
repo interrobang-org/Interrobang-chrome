@@ -15,6 +15,7 @@ const state: State = {
 };
 
 const Endpoint = {
+  playground: `${ENDPOINT_HOST}/api/playground`, 
   questions: `${ENDPOINT_HOST}/api/questions`,
   summary: `${ENDPOINT_HOST}/api/summary`,
 };
