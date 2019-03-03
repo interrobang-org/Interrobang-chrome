@@ -10,4 +10,4 @@ render(
   element,
 );
 
-export default 34;
+export default {};

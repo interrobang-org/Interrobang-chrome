@@ -1,7 +1,15 @@
-import * as React from 'react';
+import React, { useState, useMemo } from 'react';
 import styled from 'styled-components';
 
 import GlobalStyle from './GlobalStyle';
+
+// const ENDPOINT_HOST = 'https://frozen-sands-16144.herokuapp.com';
+const ENDPOINT_HOST = 'http://127.0.0.1:5000';
+
+const Endpoint = {
+  questions: `${ENDPOINT_HOST}/api/questions`,
+  summary: `${ENDPOINT_HOST}/api/summary`,
+};
 
 const textareaPlaceholder = 
 `Live coverage of the rendezvous and docking aired on NASA television and the agency\'s website, with the next highlight due at about 8:30 a.m. Eastern with the hatch opening. It’s been a big weekend for commercial spaceflight. Tourists flocked to the Kennedy Space Center in Florida to watch the launch of the Falcon 9 rocket at 2:49 a.m. Saturday. President Donald Trump congratulated SpaceX in a tweet Saturday afternoon.
@@ -48,6 +56,10 @@ const Textarea = styled.textarea`
   width: 100%;
 `;
 
+const ButtonGroup = styled.div`
+  display: flex;
+`;
+
 const Button = styled.p`
   cursor: pointer;
   font-size: 16px;
@@ -57,6 +69,10 @@ const Button = styled.p`
   &:hover {
     color: #2828bd;
   }
+`;
+
+const Status = styled.p`
+
 `;
 
 const ResultGroup = styled.div`
@@ -107,6 +123,30 @@ const Credit = styled.div`
 `;
 
 const Root = () => {
+  const [ fetchStatus, setFetchStatus ] = useState('');
+  const [ text, setText ] = useState(textareaPlaceholder);
+  const [ summary, setSummary ] = useState('[summary]');
+
+  const handleClickConvert = useMemo(
+    () => (e) => {
+      setFetchStatus('Data is being fetched...');
+      postData(Endpoint.summary, {
+        text,
+      }).then((res) => {
+        setFetchStatus('Data is successfully fetched');
+        setSummary(res.summary);
+      });
+    },
+    [summary],
+  );
+
+  const handleChangeTextarea = useMemo(
+    () => (e) => {
+      setText(e.target.value);
+    },
+    [text],
+  );
+
   return (
     <StyledRoot>
       <GlobalStyle />
@@ -117,13 +157,18 @@ const Root = () => {
         <Subtitle>
           subtitle
         </Subtitle>
-        <Textarea>
-          {textareaPlaceholder}
+        <Textarea
+          onChange={handleChangeTextarea}
+        >
+          {text}
         </Textarea>
-        <Button>convert</Button>
+        <ButtonGroup>
+          <Button onClick={handleClickConvert}>convert</Button>
+          <Status>{fetchStatus}</Status>
+        </ButtonGroup>
         <ResultGroup>
           <Result
-            label="blabla"
+            label={summary}
             title={'Summary'}
           />
           <Result 
@@ -142,5 +187,19 @@ const Root = () => {
   );
 };
 
-
 export default Root;
+
+function postData(endpoint, data) {
+  return fetch(endpoint, {
+    body: JSON.stringify(data),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: 'POST',
+    mode: 'cors',
+  })
+    .then((response) => {
+      console.log('postData() success: %o', response);
+      return response.json();
+    });
+}
