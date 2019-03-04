@@ -35,6 +35,13 @@ const Wrapper = styled.div`
   width: 705px;
 `;
 
+const Logo = styled.div`
+  background-image: url('/assets/images/favicon-192.png');
+  background-size: 42px;
+  height: 42px;
+  width: 42px;
+`;
+
 const Title = styled.p`
   font-size: 24px;
   font-weight: bold;
@@ -200,11 +207,12 @@ const Root = () => {
     <StyledRoot>
       <GlobalStyle />
       <Wrapper>
+        <Logo />
         <Title>
           Interrobang - Playground
         </Title>
         <Subtitle>
-          New way of consuming information: Get questions in advance to better decide what to learn
+          A new way of consuming information: Get questions in advance to better decide what to learn
         </Subtitle>
         <Textarea
           onChange={handleChangeTextarea}
@@ -227,7 +235,7 @@ const Root = () => {
         </ResultGroup>
         <Credit>
           <div>
-            <span>2019 Interrobang presents</span>
+            <span>2019 Interrobang presents (last updated Mar 2019)</span>
             <span><a href="https://github.com/interrobang-org">Github</a></span>
           </div>
         </Credit>
