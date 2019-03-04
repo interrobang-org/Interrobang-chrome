@@ -18,5 +18,9 @@ yarn run build
 
 When building, files are generated at `lib/`. Refer to this path while installing the extension at `chrome://extensions/` => `Load Unpacked`. See [Chrome Extension](https://developer.chrome.com/extensions/getstarted) for mor information.
 
+### Root directory
+
+`lib/` is the root directory of this extension.
+
 ## Hacktech 2019
 This project is initiated at Hacktech 2019 (Mar 2019).
